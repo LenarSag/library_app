@@ -12,7 +12,7 @@ class Library:
     def __init__(self, storage_file: str = 'storage/library.json') -> None:
         self.books: dict[UUID, Book] = {}
         self.storage_file: str = storage_file
-        self.create_storage_directory()  # Ensure the directory exists
+        self.create_storage_directory()
         self.load_books()
 
     def create_storage_directory(self) -> None:
@@ -85,5 +85,18 @@ class Library:
             print(book)
             print()
 
-    def search_book(self) -> None:
-        pass
+    def search_book(self, **kwargs) -> None:
+        find = False
+        for book in self.books.values():
+            match = all(
+                getattr(book, key, None) == value
+                for key, value in kwargs.items()
+                if value is not None
+            )
+            if match:
+                find = True
+                print(book)
+                print()
+        if not find:
+            print('По вашим критериям книг не найдено')
+            print()
