@@ -1,8 +1,10 @@
 from datetime import datetime
 import json
 import os
+from typing import Optional
 from uuid import UUID, uuid4
 
+from exceptions.exceptions import BookNotFoundError
 from library_manager.book_model import Book
 
 
@@ -30,7 +32,7 @@ class Library:
         if year < 0 or year > datetime.now().year:
             raise ValueError('Некорректный год издания')
 
-    def load_books(self):
+    def load_books(self) -> None:
         """Загружает книги из файла в словарь."""
         if os.path.exists(self.storage_file):
             with open(self.storage_file, 'r', encoding='utf-8') as file:
@@ -50,43 +52,29 @@ class Library:
                 indent=4,
             )
 
-    def add_book(self, title: str, author: str, year: int) -> None:
+    def get_book_by_id(self, book_id: UUID) -> Book:
+        """Поиск книги по id."""
+        book = self.books.get(book_id)
+        if book:
+            return book
+        raise BookNotFoundError(f'Книга с id {book_id} не найдена.')
+
+    def add_book(self, title: str, author: str, year: int) -> UUID:
         """Добавляет книгу в библиотеку."""
         book_id = uuid4()
         new_book = Book(book_id, title, author, year)
         self.books[book_id] = new_book
         self.save_books()
-        print(f"Книга '{title}' успешно добавлена с ID {book_id}.")
-
-    def update_status(self, book_id: UUID, new_status: str) -> None:
-        """Обновляет статус книги."""
-        book = self.books.get(book_id)
-        if book:
-            book.status = new_status
-            self.save_books()
-            print(f'Статус книги {book.id} обновлён!')
-        else:
-            print(f'Книга с id {book_id} не найдена.')
+        return book_id
 
     def remove_book(self, book_id: UUID) -> None:
         """Удаляет книгу из библиотеки."""
-        book = self.books.get(book_id)
-        if book:
-            del self.books[book_id]
-            self.save_books()
-            print(f'Книга с id {book_id} успешно удалена.')
-        else:
-            print(f'Книга с id {book_id} не найдена.')
+        del self.books[book_id]
+        self.save_books()
 
-    def get_all_books(self) -> None:
-        if not self.books:
-            print('Библиотека пуста.')
-        for book in self.books.values():
-            print(book)
-            print()
-
-    def search_book(self, **kwargs) -> None:
-        find = False
+    def search_book(self, **kwargs) -> Optional[list]:
+        """Ищет книгу по задданым атрибутам."""
+        results = []
         for book in self.books.values():
             match = all(
                 getattr(book, key, None) == value
@@ -94,9 +82,14 @@ class Library:
                 if value is not None
             )
             if match:
-                find = True
-                print(book)
-                print()
-        if not find:
-            print('По вашим критериям книг не найдено')
-            print()
+                results.append(book)
+        return results if results else None
+
+    def get_all_books(self) -> dict[UUID, Book]:
+        """Возвращает словарь со всеми книгами."""
+        return self.books
+
+    def update_status(self, book, new_status: str) -> None:
+        """Обновляет статус книги."""
+        book.status = new_status
+        self.save_books()

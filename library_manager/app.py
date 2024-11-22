@@ -1,9 +1,17 @@
 from uuid import UUID
 
+from exceptions.exceptions import BookNotFoundError
 from library_manager.library import Library
 
 
 BOOK_STATUS: dict[int, str] = {1: 'в наличии', 2: 'выдана'}
+STARS = '*' * 20
+
+
+def print_with_stars(text: str) -> None:
+    print(STARS)
+    print(text)
+    print(STARS)
 
 
 class LibraryApp:
@@ -15,10 +23,10 @@ class LibraryApp:
     def start(self) -> None:
         """Запуск консольного приложения."""
         print('Приветствую в приложении Библиотека!')
+        print()
 
         while True:
-            print()
-            print('Список команд:')
+            print('Что вы хотите сделать? Введите одну из команд:')
             print('1: добавить книгу')
             print('2: удалить книгу')
             print('3: поиск книги')
@@ -29,22 +37,31 @@ class LibraryApp:
             command = input('Введите команду:')
 
             if command == '1':
-                title = input('Введите название книги:').strip()
-                author = input('Введите автора книги:').strip()
                 try:
+                    title = input('Введите название книги:').strip()
+                    author = input('Введите автора книги:').strip()
                     year = int(input('Введите год издания:').strip())
                     self.library.validate_book(title, author, year)
-                    self.library.add_book(title, author, year)
+                    book_id = self.library.add_book(title, author, year)
+
+                    print_with_stars(
+                        f"Книга '{title}' успешно добавлена с ID {book_id}."
+                    )
 
                 except ValueError as e:
-                    print(f'Ошибка: {e}')
+                    print_with_stars(f'Ошибка: {e}')
 
             elif command == '2':
                 try:
                     book_id = UUID(input('Введите id книги: ').strip())
+                    self.library.get_book_by_id(book_id)
                     self.library.remove_book(book_id)
+                    print_with_stars(f'Книга с id {book_id} удалена')
+
                 except ValueError:
-                    print('Введите корректный id')
+                    print_with_stars('Введите корректный id')
+                except BookNotFoundError as e:
+                    print_with_stars(f'Ошибка: {e}')
 
             elif command == '3':
                 try:
@@ -53,36 +70,55 @@ class LibraryApp:
                     )
                     title = input('Введите название книги:').strip() or None
                     author = input('Введите автора книги:').strip() or None
-                    year_input = input('Введите год издания:\n').strip()
+                    year_input = input('Введите год издания:').strip()
                     year = int(year_input) if year_input else None
-                    self.library.search_book(title=title, author=author, year=year)
+                    results = self.library.search_book(
+                        title=title, author=author, year=year
+                    )
+                    if results:
+                        for result in results:
+                            print_with_stars(result)
+                    else:
+                        print_with_stars('Книга с такими данными не найдена.')
 
                 except ValueError:
                     print('Введите корректный год издания')
 
             elif command == '4':
-                self.library.get_all_books()
+                books = self.library.get_all_books()
+                if books:
+                    print('На данный момент в библиотеке следующие книги:')
+                    for book in books.values():
+                        print_with_stars(book)
+                else:
+                    print_with_stars('Библиотека пуста.')
 
             elif command == '5':
                 try:
                     book_id = UUID(input('Введите id книги:').strip())
+                    book = self.library.get_book_by_id(book_id)
+                    print(f'Текущий статус книги "{book.status}"')
+
                     print('Выберите статус книги:')
                     for num, status in BOOK_STATUS.items():
                         print(f'{num}. {status}')
 
-                    status_key = int(input('Введите номер статуса:'))
+                    status_key = int(input('Введите номер статуса:').strip())
                     if status_key not in BOOK_STATUS:
                         raise ValueError('Неверный выбор статуса.')
 
                     new_status = BOOK_STATUS.get(status_key)
-                    self.library.update_status(book_id, new_status)
+                    self.library.update_status(book, new_status)
+                    print_with_stars(f'Статус книги с id {book_id} обновлен.')
 
                 except ValueError as e:
-                    print(f'Ошибка: {e}')
+                    print_with_stars(f'Ошибка: {e}')
+                except BookNotFoundError as e:
+                    print_with_stars(f'Ошибка: {e}')
 
             elif command == '0':
                 print('Выход из приложения.')
                 break
 
             else:
-                print('Некорректная команда. Попробуйте снова.')
+                print_with_stars('Некорректная команда. Попробуйте снова.')
