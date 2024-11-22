@@ -10,7 +10,6 @@ from library_manager.app import LibraryApp
 
 class TestLibraryApp(unittest.TestCase):
     def setUp(self):
-        """Set up the LibraryApp with a mocked Library."""
         self.app = LibraryApp()
         self.app.library = MagicMock()
 
