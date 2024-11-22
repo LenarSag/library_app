@@ -3,9 +3,8 @@ from uuid import UUID
 from exceptions.exceptions import BookNotFoundError
 from library_manager.library import Library
 
-
-BOOK_STATUS: dict[int, str] = {1: 'в наличии', 2: 'выдана'}
-STARS = '*' * 20
+from config import BOOK_STATUS
+from config import STARS
 
 
 def print_with_stars(text: str) -> None:
