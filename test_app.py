@@ -125,3 +125,73 @@ class TestLibraryApp(unittest.TestCase):
         mock_print.assert_any_call(STARS)
         mock_print.assert_any_call('Ошибка: Книга не найдена.')
         mock_print.assert_any_call(STARS)
+
+    @patch('builtins.input', side_effect=['4', '0'])
+    @patch('builtins.print')
+    def test_get_all_books_non_empty(self, mock_print, mock_input):
+        """Тестирование на получение непустого списка книг."""
+
+        mock_books = {
+            UUID('123e4567-e89b-12d3-a456-426614174000'): {
+                'title': 'Book 1',
+                'author': 'Author 1',
+                'year': 2020,
+            },
+            UUID('123e4567-e89b-12d3-a456-426614174001'): {
+                'title': 'Book 2',
+                'author': 'Author 2',
+                'year': 2021,
+            },
+        }
+        self.app.library.get_all_books.return_value = mock_books
+
+        self.app.start()
+
+        self.app.library.get_all_books.assert_called_once()
+        mock_print.assert_any_call(STARS)
+        mock_print.assert_any_call('На данный момент в библиотеке следующие книги:')
+        mock_print.assert_any_call(STARS)
+        mock_print.assert_any_call(
+            {'title': 'Book 1', 'author': 'Author 1', 'year': 2020}
+        )
+        mock_print.assert_any_call(
+            {'title': 'Book 2', 'author': 'Author 2', 'year': 2021}
+        )
+
+    @patch('builtins.input', side_effect=['4', '0'])
+    @patch('builtins.print')
+    def test_get_all_books_empty(self, mock_print, mock_input):
+        """Тестирование на получение пустого списка книги."""
+
+        self.app.library.get_all_books.return_value = {}
+
+        self.app.start()
+
+        self.app.library.get_all_books.assert_called_once()
+        mock_print.assert_any_call(STARS)
+        mock_print.assert_any_call('Библиотека пуста.')
+        mock_print.assert_any_call(STARS)
+
+    @patch(
+        'builtins.input',
+        side_effect=['5', '123e4567-e89b-12d3-a456-426614174000', '1', '0'],
+    )
+    @patch('builtins.print')
+    def test_update_book_status(self, mock_print, mock_input):
+        """Тестирование на обновление статуса книги."""
+        mock_book = MagicMock()
+        mock_book.status = 'в наличии'
+        self.app.library.get_book_by_id.return_value = mock_book
+        self.app.library.update_status.return_value = None
+
+        self.app.start()
+
+        self.app.library.get_book_by_id.assert_called_once_with(
+            UUID('123e4567-e89b-12d3-a456-426614174000')
+        )
+        self.app.library.update_status.assert_called_once_with(mock_book, 'в наличии')
+        mock_print.assert_any_call(STARS)
+        mock_print.assert_any_call(
+            'Статус книги с id 123e4567-e89b-12d3-a456-426614174000 обновлен.'
+        )
+        mock_print.assert_any_call(STARS)
