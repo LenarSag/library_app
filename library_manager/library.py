@@ -4,6 +4,7 @@ import os
 from typing import Optional
 from uuid import UUID, uuid4
 
+from config import WORKING_FILE_FOLDER
 from exceptions.exceptions import BookNotFoundError
 from library_manager.book_model import Book
 
@@ -11,7 +12,7 @@ from library_manager.book_model import Book
 class Library:
     """Клас управления библиотекой."""
 
-    def __init__(self, storage_file: str = 'storage/library.json') -> None:
+    def __init__(self, storage_file: str = WORKING_FILE_FOLDER) -> None:
         self.books: dict[UUID, Book] = {}
         self.storage_file: str = storage_file
         self.create_storage_directory()
@@ -89,7 +90,7 @@ class Library:
         """Возвращает словарь со всеми книгами."""
         return self.books
 
-    def update_status(self, book, new_status: str) -> None:
+    def update_status(self, book: Book, new_status: str) -> None:
         """Обновляет статус книги."""
         book.status = new_status
         self.save_books()
