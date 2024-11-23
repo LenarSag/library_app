@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from exceptions.exceptions import BookNotFoundError
+from library_manager.exceptions import BookNotFoundError
 from library_manager.library import Library
 
 from config import BOOK_STATUS

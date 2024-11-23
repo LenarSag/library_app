@@ -3,7 +3,7 @@ import os
 import pytest
 
 from config import TEST_FILE_FOLDER
-from exceptions.exceptions import BookNotFoundError
+from library_manager.exceptions import BookNotFoundError
 from library_manager.library import Library
 from library_manager.app import LibraryApp
 

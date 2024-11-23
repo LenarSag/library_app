@@ -5,7 +5,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from config import WORKING_FILE_FOLDER
-from exceptions.exceptions import BookNotFoundError
+from library_manager.exceptions import BookNotFoundError
 from library_manager.book_model import Book
 
 
